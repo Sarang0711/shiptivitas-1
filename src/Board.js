@@ -55,6 +55,47 @@ export default class Board extends React.Component {
       <Swimlane name={name} clients={clients} dragulaRef={ref}/>
     );
   }
+  
+  componentDidMount() {
+    const swimlaneRefs = Object.values(this.swimlanes);
+    const swimlanes = swimlaneRefs.map(ref => ref.current);
+    const swimlaneNames = Object.keys(this.state.clients);
+  
+    Dragula(swimlanes)
+      .on('drop', (el, target, source, sibling) => {
+        const sourceSwimlaneIndex = swimlanes.indexOf(source);
+        const sourceSwimlaneName = swimlaneNames[sourceSwimlaneIndex];
+        const targetSwimlaneIndex = swimlanes.indexOf(target);
+        const targetSwimlaneName = swimlaneNames[targetSwimlaneIndex];
+        const clientIndex = Array.from(target.children).indexOf(el);
+        const clients = this.state.clients;
+        const client = clients[sourceSwimlaneName][clientIndex];
+        const newStatus = targetSwimlaneName === 'backlog' ? null : targetSwimlaneName;
+        const newClient = { ...client, status: newStatus };
+        clients[sourceSwimlaneName].splice(clientIndex, 1);
+        clients[targetSwimlaneName].push(newClient);
+        const swimlaneStatus = targetSwimlaneName;
+        const sourceSwimlaneStatus = sourceSwimlaneName;
+        console.log(sourceSwimlaneStatus);
+        el.classList.remove('Card-grey', 'Card-blue', 'Card-green');
+        switch (swimlaneStatus) {
+          case 'backlog':
+            el.classList.add('Card-grey');
+            break;
+          case 'inProgress':
+           el.classList.add('Card-blue');
+            break;
+          case 'complete':
+            el.classList.add('Card-green');
+            break;
+          default:
+            el.classList.add('Card-grey');
+        }
+      });
+  }
+  
+
+  
 
   render() {
     return (
